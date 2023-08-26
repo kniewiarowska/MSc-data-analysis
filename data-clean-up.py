@@ -28,9 +28,7 @@ data = [test1_data, other_data]
 df = pd.concat(data)
 
 df.sort_values(by='timestamp', ascending=True)
-#datetime_column = pd.to_datetime(df['timestamp'], unit='s').dt.tz_localize('UTC').dt.tz_convert('Europe/Warsaw')
-#df['timestamp'] = datetime_column
 
 print(df)
-df.to_csv('data/csv-done.csv')
+df.to_csv('data/cleaned_data.csv')
 

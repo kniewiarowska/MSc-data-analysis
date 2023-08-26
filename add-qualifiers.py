@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import time
 import datetime
@@ -62,8 +63,21 @@ def prepare_statistic_from_one_hour(item, feeling_rates_for_user):
 
     feeling_rate = find_feeling_rate(feeling_rates_for_user, first_date)
 
-    data = [steps, round(heart_rate_avg, 2), round(raw_intensity_avg, 2), feeling_rate]
+    time_of_day = get_time_of_day(first_date)
+
+    data = [steps, round(heart_rate_avg, 2), round(raw_intensity_avg, 2),
+            feeling_rate, time_of_day]
     final_data.append(data)
+
+
+def get_time_of_day(datetime):
+    date_and_time = str(datetime).split('T')
+    hh_mm_ss = date_and_time[1].split(':')
+    hour = hh_mm_ss[0]
+    print(hour)
+    return (int(hour) % 24 + 4) // 4
+    # time_of_day_dict = {1: 'Late Night', 2: 'Early Morning', 3: 'Morning', 4: 'Noon', 5: 'Evening', 6: 'Night'}
+    # return time_of_day_dict.get(time_of_day)
 
 
 def user_feeling_rate(user_id):
@@ -89,7 +103,13 @@ def find_feeling_rate(fru, date):
             value = last_time_stamp
 
     feeling_row = fru.loc[fru['timestamp'] == value]
-    return feeling_row['feeling_rate'].values[0]
+    feeling_value = feeling_row['feeling_rate'].values[0]
+
+    if feeling_value == 5:
+        return 3
+    if feeling_value == 4:
+        return 2
+    return 1
 
 
 def change_to_timestamp(date):
@@ -110,7 +130,7 @@ def prepare_data_for_user(user_name):
 
 
 # Read data from mi_band
-mi_band_data = pd.read_csv("data/csv-done.csv")
+mi_band_data = pd.read_csv("data/cleaned_data.csv")
 users = mi_band_data['user_id'].unique()
 
 final_data = []
@@ -120,5 +140,7 @@ raw_intensity_mean = calculate_raw_intensity_mean(mi_band_data)
 for user in users:
     prepare_data_for_user(user)
 
-final_df = pd.DataFrame(final_data, columns=['steps', 'heart_rate', 'raw_intensity', 'feeling_rate'])
-final_df.to_csv('data/final_data.csv')
+final_df = pd.DataFrame(final_data, columns=['steps', 'heart_rate', 'raw_intensity', 'feeling_rate',
+                                             'time_of_day'])
+print(final_df)
+final_df.to_csv('data/one_hour_data.csv')
